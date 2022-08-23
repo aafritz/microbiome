@@ -1,29 +1,21 @@
-setwd("/home/amelie/nas/PKU_Inter99/merged_kasper/model/not_stratified/sex_interactions_scaled/")
+setwd("/home/amelie/microbiome")
 rm(list=ls())
-library(BEDMatrix)
 library(rstan)
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = T, javascript=F)
 library(parallel)
 
-bed <- BEDMatrix("/home/amelie/nas/PKU_Inter99/merged_kasper/data/clumped_data/clumped_data/PKU_Inter99_clumped.bed", simple_names=TRUE)
+data <- fread("f1y_logrelabu_20pct_pheno.txt") 
+## 608 individuals: 1 = asthma, 0 = no asthma
+## 133 cases already coded in 1
+## 475 controls
 
-fam <- fread("/home/amelie/nas/PKU_Inter99/merged_kasper/data/clumped_data/clumped_data/PKU_Inter99_clumped.fam") %>% dplyr::select(FID=V1, IID=V2, PID=V3, MID=V4, SEX=V5, PHENO=V6)
 
-phenotypes <- fread("/home/amelie/nas/PKU_Inter99/merged_kasper/phenotypes.txt") %>% dplyr::rename(FID=V1, IID=V2, PHENO=V3)
-fam <- left_join(fam, phenotypes, by=c("IID"="IID")) %>% dplyr::select(FID=FID.x, IID, PID, MID, SEX, PHENO=PHENO.y) 
+## if covariates are included they need to be scaled
+## phenotype needs to be 0 and 1
+## think about scaling input data?
 
-covar <- fread("/home/amelie/nas/PKU_Inter99/merged_kasper/GWAS/covar.txt", header=TRUE)
-X <- left_join(fam, covar, by=c("FID"="FID")) %>% dplyr::select(FID, IID.x, PID, MID, SEX, PHENO, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10)
-X$SEX <- as.numeric(X$SEX)
-covar <- X %>% dplyr::select(C1, C2, C3, C4, C5, C6, C7, C8, C9, C10) %>% as.matrix() %>% scale()
-
-pheno <- X$PHENO 
-pheno <- pheno-1 
-
-sex <- X$SEX-1 
-snp <- "rs12092254"
-model <- stan_model(file = "/nas/users/amelie/PKU_Inter99/merged_kasper/model/model_anders.stan")  
+model <- stan_model(file = "/nas/users/amelie/PKU_Inter99/merged_kasper/model/model_anders_nocovar.stan")  
 system.time(
   r <- mclapply(colnames(bed), function(snp) {
     
