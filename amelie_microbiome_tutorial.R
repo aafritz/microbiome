@@ -49,7 +49,6 @@ f1y_ra <- f1y %>% transform_sample_counts(function(x) x/sum(x))
 
 ?make_mradat
 
-# make relative abundance with function of copiome::make_mradat
 f1y_mra <- make_mradat(f1y)
 
 ggplot(f1y_mra, aes(prevalence)) + geom_histogram()
