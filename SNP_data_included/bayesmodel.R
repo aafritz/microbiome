@@ -17,7 +17,7 @@ pheno <- data$pheno
 i <- 4
 model <- stan_model(file = "model_nocovar_taxa_sex_snp.stan")  
 system.time(
-  r <- mclapply(4:ncol(data), function(i) {
+  r <- mclapply(4:61, function(i) {
 #  r <- mclapply(4:10, function(i) {    
     taxa <- data[,..i] 
     taxa_name <- colnames(taxa)
